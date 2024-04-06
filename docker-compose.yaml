@@ -1,0 +1,38 @@
+version: "3.6"
+services:
+  postgresdb:
+    networks:
+    - network1
+    image: postgres:14
+    container_name: postgres
+    hostname: postgresdb
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_HOST_AUTH_METHOD: password
+    volumes:
+      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+
+  pgbouncer:
+    depends_on: 
+    - postgresdb
+    networks:
+    - network1
+    image: bitnami/pgbouncer
+    container_name: pgbouncer
+    hostname: pgbouncer
+    environment:
+      PGBOUNCER_MAX_CLIENT_CONN: 10
+      PGBOUNCER_MAX_DB_CONNECTIONS: 10
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: example
+      POSTGRESQL_DATABASE: postgres
+      POSTGRESQL_HOST: postgresdb
+      PGBOUNCER_AUTH_TYPE: md5
+    volumes:
+      - ./pgbouncer/conf/:/bitnami/pgbouncer/conf/
+
+networks:
+  network1:
+    driver: bridge
